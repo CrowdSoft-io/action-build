@@ -36,4 +36,5 @@ The name of build directory.
 uses: CrowdSoft-io/action-build@v1.0
 with:
   platform: 'next'
+  user: 'developer'
 ```
