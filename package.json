@@ -7,7 +7,8 @@
     "build": "tsc",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "prepare": "is-ci || husky install"
+    "prepare": "is-ci || husky install",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "yaml": "^2.2.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.1",
     "@types/node": "^12.20.55",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
@@ -27,8 +29,11 @@
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
+    "jest": "^29.5.0",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
     "typescript": "^4.8.4"
   },
   "husky": {
@@ -36,5 +41,24 @@
       "pre-commit": "lint-staged",
       "post-commit": "git update-index --again"
     }
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "roots": [
+      "tests"
+    ],
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
   }
 }

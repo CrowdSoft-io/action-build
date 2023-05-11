@@ -12,7 +12,7 @@ export class InstallScriptBuilder {
 
   addStages(...stages: Array<ReleaseStage>): InstallScriptBuilder {
     stages.forEach(({ name, actions }) => {
-      const slug = name.replace(/s+/g, "_").replace(/\W+/g, "").toLowerCase() || Date.now();
+      const slug = name.replace(/\s+/g, "_").replace(/\W+/g, "").toLowerCase() || Date.now();
       const filename = `${slug}.sh`;
       this.stages.push({ name, filename, actions });
     });
@@ -60,12 +60,12 @@ export class InstallScriptBuilder {
 
   async build(buildBinDir: string, filename = "install.sh"): Promise<void> {
     this.stages.forEach((stage) =>
-      fs.writeFileSync(`${buildBinDir}/${stage.filename}.sh`, [`echo '${stage.name}'`, ...stage.actions].join("\n"))
+      fs.writeFileSync(`${buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n"))
     );
 
     fs.writeFileSync(
       `${buildBinDir}/${filename}`,
-      ["set -e", "set -o pipefail", ...this.stages.map(({ filename }) => `bash ${buildBinDir}/${filename}.sh`)].join("\n")
+      ["set -e", "set -o pipefail", ...this.stages.map(({ filename }) => `bash ${buildBinDir}/${filename}`)].join("\n")
     );
   }
 }
