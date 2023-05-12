@@ -8,5 +8,5 @@ export declare class InstallScriptBuilder {
     switchReleases(): InstallScriptBuilder;
     removeOldReleases(): InstallScriptBuilder;
     removeBuildArtifacts(): InstallScriptBuilder;
-    build(buildBinDir: string, filename?: string): Promise<void>;
+    build(installFilename?: string): Promise<void>;
 }

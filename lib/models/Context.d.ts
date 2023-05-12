@@ -1,11 +1,14 @@
 import { Context as GithubContext } from "@actions/github/lib/context";
 export interface Context {
+    readonly repositoryName: string;
+    readonly projectName: string;
+    readonly serviceName: string;
     readonly version: string;
     readonly branch: string;
+    readonly infrastructureDir: string;
     readonly local: {
         readonly buildDir: string;
         readonly buildBinDir: string;
-        readonly infrastructureDir: string;
     };
     readonly remote: {
         readonly user: string;
@@ -13,8 +16,10 @@ export interface Context {
         readonly projectRoot: string;
         readonly releasesRoot: string;
         readonly releaseDir: string;
+        readonly logsDir: string;
         readonly buildDir: string;
-        readonly supervisorGroup: string;
+        readonly buildBinDir: string;
+        readonly supervisorDir: string;
         readonly maxReleases: number;
     };
     readonly github: GithubContext;

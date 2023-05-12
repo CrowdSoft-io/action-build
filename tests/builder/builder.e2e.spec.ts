@@ -54,6 +54,7 @@ describe("Build e2e", () => {
       }
     }));
 
+    (fs as any).mkdirSync = jest.fn().mockImplementation((path, options) => console.log(["[MKDIR]", path, options]));
     (fs as any).writeFileSync = jest.fn().mockImplementation((file, content) => console.log(["[WRITE]", file, content]));
 
     injector = new InjectorService();

@@ -58,14 +58,14 @@ export class InstallScriptBuilder {
     });
   }
 
-  async build(buildBinDir: string, filename = "install.sh"): Promise<void> {
+  async build(installFilename = "install.sh"): Promise<void> {
     this.stages.forEach((stage) =>
-      fs.writeFileSync(`${buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n"))
+      fs.writeFileSync(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n"))
     );
 
     fs.writeFileSync(
-      `${buildBinDir}/${filename}`,
-      ["set -e", "set -o pipefail", ...this.stages.map(({ filename }) => `bash ${buildBinDir}/${filename}`)].join("\n")
+      `${this.context.local.buildBinDir}/${installFilename}`,
+      ["set -e", "set -o pipefail", ...this.stages.map((stage) => `bash ${this.context.remote.buildBinDir}/${stage.filename}`)].join("\n")
     );
   }
 }

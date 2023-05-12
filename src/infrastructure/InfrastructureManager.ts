@@ -12,7 +12,7 @@ export class InfrastructureManager {
   constructor(@Inject() private readonly infrastructureResolver: InfrastructureResolver) {}
 
   async build(context: Context): Promise<InfrastructureBuildResult> {
-    const { parameters, ...configs } = this.loadConfigs(context.local.infrastructureDir);
+    const { parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
     const mergedParameters = { ...parameters?.base, ...parameters?.[context.branch] };
 
     const result: InfrastructureBuildResult = {
@@ -22,7 +22,7 @@ export class InfrastructureManager {
 
     for (const name in configs) {
       const service = this.infrastructureResolver.resolve(name as InfrastructureName);
-      const { preRelease, postRelease } = await service.build(context, mergedParameters);
+      const { preRelease, postRelease } = await service.build(context, configs[name], mergedParameters);
       result.preRelease.push(...preRelease);
       result.postRelease.push(...postRelease);
     }

@@ -1,5 +1,6 @@
 import { Context as GithubContext } from "@actions/github/lib/context";
 import { Inject, Injectable } from "@tsed/di";
+import fs from "fs";
 import { InfrastructureManager } from "../infrastructure";
 import { Context, Result } from "../models";
 import { PlatformName, PlatformResolver } from "../platforms";
@@ -25,8 +26,8 @@ export class Builder {
 
     const context = await this.createPlatformContext(githubContext, options);
 
-    await this.runner.run("mkdir", context.local.buildDir);
-    await this.runner.run("mkdir", context.local.buildBinDir);
+    fs.mkdirSync(context.local.buildDir, 0o755);
+    fs.mkdirSync(context.local.buildBinDir, 0o755);
 
     const infrastructureResult = await this.infrastructureManager.build(context);
 
@@ -44,7 +45,7 @@ export class Builder {
       .addStages(...infrastructureResult.postRelease)
       .removeOldReleases()
       .removeBuildArtifacts()
-      .build(context.local.buildBinDir);
+      .build();
 
     return {
       version: context.version,
@@ -64,14 +65,18 @@ export class Builder {
     const remoteHomeDir = `/home/${options.user}`;
     const remoteWwwRoot = `${remoteHomeDir}/www`;
     const remoteReleasesRoot = `${remoteHomeDir}/releases`;
+    const remoteBuildDir = `${remoteReleasesRoot}/build-${version}`;
 
     return {
+      repositoryName: repository,
+      projectName: repository.replace(/^(\w+)-.*$/g, "$1"),
+      serviceName: repository.replace(/-/g, "_"),
       version,
       branch,
+      infrastructureDir: options.infrastructureDir,
       local: {
         buildDir: localBuildDir,
-        buildBinDir: `${localBuildDir}/bin`,
-        infrastructureDir: options.infrastructureDir
+        buildBinDir: `${localBuildDir}/bin`
       },
       remote: {
         user: options.user,
@@ -79,8 +84,10 @@ export class Builder {
         projectRoot: `${remoteWwwRoot}/${repository}`,
         releasesRoot: remoteReleasesRoot,
         releaseDir: `${remoteReleasesRoot}/${version}`,
-        buildDir: `${remoteReleasesRoot}/build-${version}`,
-        supervisorGroup: repository.replace(/-/g, "_"),
+        logsDir: `${remoteHomeDir}/logs/${repository}`,
+        buildDir: remoteBuildDir,
+        buildBinDir: `${remoteBuildDir}/bin`,
+        supervisorDir: `${remoteHomeDir}/supervisor`,
         maxReleases: options.maxReleases
       },
       github: githubContext
