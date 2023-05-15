@@ -162,7 +162,7 @@ class InstallScriptBuilder {
             actions: [
                 `[[ ! -d '${this.context.remote.logsDir}' ]] && mkdir -p '${this.context.remote.logsDir}'`,
                 `[[ ! -d '${this.context.remote.nginxDir}' ]] && mkdir -p '${this.context.remote.nginxDir}'`,
-                `[[ ! -d '${this.context.remote.releasesRoot}' ]] && mkdir -p '${this.context.remote.releasesRoot}'`,
+                `[[ ! -d '${this.context.remote.releaseDir}' ]] && mkdir -p '${this.context.remote.releaseDir}'`,
                 `[[ ! -d '${this.context.remote.supervisorDir}' ]] && mkdir -p '${this.context.remote.supervisorDir}'`,
                 `[[ ! -d '${this.context.remote.wwwRoot}' ]] && mkdir -p '${this.context.remote.wwwRoot}'`
             ]
