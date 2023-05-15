@@ -87,7 +87,8 @@ export class Builder {
         logsDir: `${remoteHomeDir}/logs/${repository}`,
         buildDir: remoteBuildDir,
         buildBinDir: `${remoteBuildDir}/bin`,
-        supervisorDir: `${remoteHomeDir}/supervisor`,
+        nginxDir: `${remoteHomeDir}/nginx/${repository}`,
+        supervisorDir: `${remoteHomeDir}/supervisor/${repository}`,
         maxReleases: options.maxReleases
       },
       github: githubContext

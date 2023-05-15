@@ -30,16 +30,41 @@ export class NginxInfrastructure implements InfrastructureInterface {
     }
 
     return {
-      preRelease: this.preRelease(),
+      preRelease: this.preRelease(context, config),
       postRelease: this.postRelease()
     };
   }
 
-  private preRelease(): Array<ReleaseStage> {
-    return [];
+  private preRelease(context: Context, config: NginxConfig): Array<ReleaseStage> {
+    const stages: Array<ReleaseStage> = [];
+
+    if (config.external) {
+      const configSrc = `${context.remote.buildDir}/nginx/${context.repositoryName}.external`;
+      const configDist = `${context.remote.nginxDir}/${context.repositoryName}.external`;
+      stages.push({
+        name: `Nginx "${context.repositoryName}.external" config update`,
+        actions: [`cat '${configSrc}' > '${configDist}'`]
+      });
+    }
+
+    if (config.internal) {
+      const configSrc = `${context.remote.buildDir}/nginx/${context.repositoryName}.internal`;
+      const configDist = `${context.remote.nginxDir}/${context.repositoryName}.internal`;
+      stages.push({
+        name: `Nginx "${context.repositoryName}.internal" config update`,
+        actions: [`cat '${configSrc}' > '${configDist}'`]
+      });
+    }
+
+    return stages;
   }
 
   private postRelease(): Array<ReleaseStage> {
-    return [];
+    return [
+      {
+        name: "Nginx reload",
+        actions: ["sudo service nginx reload"]
+      }
+    ];
   }
 }

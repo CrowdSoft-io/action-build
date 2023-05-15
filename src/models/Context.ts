@@ -20,6 +20,7 @@ export interface Context {
     readonly logsDir: string;
     readonly buildDir: string;
     readonly buildBinDir: string;
+    readonly nginxDir: string;
     readonly supervisorDir: string;
     readonly maxReleases: number;
   };
