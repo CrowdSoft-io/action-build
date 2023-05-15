@@ -37,6 +37,7 @@ export class Builder {
     await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
 
     await new InstallScriptBuilder(context)
+      .createDirectories()
       .extractReleaseArchive()
       .addStages(...infrastructureResult.preRelease)
       .addStages(...platformResult.preRelease)
@@ -87,8 +88,8 @@ export class Builder {
         logsDir: `${remoteHomeDir}/logs/${repository}`,
         buildDir: remoteBuildDir,
         buildBinDir: `${remoteBuildDir}/bin`,
-        nginxDir: `${remoteHomeDir}/nginx/${repository}`,
-        supervisorDir: `${remoteHomeDir}/supervisor/${repository}`,
+        nginxDir: `${remoteHomeDir}/nginx`,
+        supervisorDir: `${remoteHomeDir}/supervisor`,
         maxReleases: options.maxReleases
       },
       github: githubContext
