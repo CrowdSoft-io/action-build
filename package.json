@@ -4,9 +4,11 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "all": "npm run lint && npm run build && npm run package && npm test",
     "build": "tsc",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
+    "package": "ncc build --source-map --license licenses.txt",
     "prepare": "is-ci || husky install",
     "test": "jest"
   },
@@ -24,6 +26,7 @@
     "@types/node": "^12.20.55",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
+    "@vercel/ncc": "^0.36.1",
     "eslint": "^8.24.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^4.2.1",
