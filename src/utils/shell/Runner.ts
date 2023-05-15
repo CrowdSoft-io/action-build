@@ -5,18 +5,18 @@ import { spawn } from "child_process";
 export class Runner {
   run(command: string, ...args: Array<string>): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      let hasError = false;
       let data = "";
+      let error = "";
       const handler = spawn(command, args);
       handler.stdout.on("data", (chunk) => {
         data += chunk;
         console.log(chunk.toString());
       });
-      handler.stderr.on("data", (data) => {
-        hasError = true;
+      handler.stderr.on("data", (chunk) => {
+        error += chunk;
         console.error(data.toString());
       });
-      handler.on("close", () => (hasError ? reject() : resolve(data)));
+      handler.on("close", (code) => (code !== 0 ? reject(error || `${command} process exited with code ${code}`) : resolve(data)));
     });
   }
 }

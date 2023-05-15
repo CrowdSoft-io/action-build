@@ -1473,7 +1473,7 @@ let YarnPackageManager = class YarnPackageManager {
         if (options?.frozenLockfile) {
             args.push("--frozen-lockfile");
         }
-        await this.runner.run("yarn", "install", "--silent", ...args);
+        await this.runner.run("yarn", "install", ...args);
     }
     async run(command, ...args) {
         await this.runner.run("yarn", command, ...args);
@@ -1532,18 +1532,18 @@ const child_process_1 = __nccwpck_require__(32081);
 let Runner = class Runner {
     run(command, ...args) {
         return new Promise((resolve, reject) => {
-            let hasError = false;
             let data = "";
+            let error = "";
             const handler = (0, child_process_1.spawn)(command, args);
             handler.stdout.on("data", (chunk) => {
                 data += chunk;
                 console.log(chunk.toString());
             });
-            handler.stderr.on("data", (data) => {
-                hasError = true;
+            handler.stderr.on("data", (chunk) => {
+                error += chunk;
                 console.error(data.toString());
             });
-            handler.on("close", () => (hasError ? reject() : resolve(data)));
+            handler.on("close", (code) => (code !== 0 ? reject(error || `${command} process exited with code ${code}`) : resolve(data)));
         });
     }
 };

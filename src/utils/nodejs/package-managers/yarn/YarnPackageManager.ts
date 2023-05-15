@@ -19,7 +19,7 @@ export class YarnPackageManager implements PackageManagerInterface {
       args.push("--frozen-lockfile");
     }
 
-    await this.runner.run("yarn", "install", "--silent", ...args);
+    await this.runner.run("yarn", "install", ...args);
   }
 
   async run(command: string, ...args: Array<string>): Promise<void> {
