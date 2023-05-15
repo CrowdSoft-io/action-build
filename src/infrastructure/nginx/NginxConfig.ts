@@ -20,7 +20,7 @@ export type NginxService = NginxHtmlService | NginxPhpService | NginxProxyServic
 
 export type NginxLocation = {
   readonly path: string;
-  readonly basicAuth?: boolean;
+  readonly basic_auth?: boolean;
   readonly service: NginxService;
 };
 

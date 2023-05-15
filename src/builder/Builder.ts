@@ -50,7 +50,9 @@ export class Builder {
 
     return {
       version: context.version,
-      buildDir: context.local.buildDir
+      buildDir: context.local.buildDir,
+      releaseDir: context.remote.buildDir,
+      installScript: `${context.remote.buildBinDir}/install.sh`
     };
   }
 

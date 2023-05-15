@@ -23,6 +23,8 @@ async function main(): Promise<void> {
 
   core.setOutput("version", result.version);
   core.setOutput("build_dir", result.buildDir);
+  core.setOutput("release_dir", result.releaseDir);
+  core.setOutput("install_script", result.installScript);
 
   console.log(`Building "${platform}" version "${result.version}" finished.`);
 

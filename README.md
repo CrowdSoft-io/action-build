@@ -30,6 +30,14 @@ The version of the build.
 
 The name of build directory.
 
+### `release_dir`
+
+The name of release directory.
+
+### `install_script`
+
+The path to install script.
+
 ## Example usage
 
 ```yaml

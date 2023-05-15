@@ -20,6 +20,10 @@ outputs:
     description: 'Build version'
   build_dir:
     description: 'Build directory'
+  release_dir:
+    description: 'Release directory'
+  install_script:
+    description: 'Install script'
 runs:
   using: 'node16'
   main: 'lib/index.js'

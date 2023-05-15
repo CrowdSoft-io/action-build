@@ -122,7 +122,7 @@ export class NginxConfigRenderer {
     const lines: Array<string> = [];
 
     lines.push(`    location ${location.path} {`);
-    if (location.basicAuth) {
+    if (location.basic_auth) {
       lines.push('        auth_basic           "Restricted Content";');
       lines.push("        auth_basic_user_file /etc/nginx/.htpasswd;");
       lines.push("");

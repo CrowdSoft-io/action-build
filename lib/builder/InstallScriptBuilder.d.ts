@@ -4,6 +4,7 @@ export declare class InstallScriptBuilder {
     private readonly stages;
     constructor(context: Context);
     addStages(...stages: Array<ReleaseStage>): InstallScriptBuilder;
+    createDirectories(): InstallScriptBuilder;
     extractReleaseArchive(): InstallScriptBuilder;
     switchReleases(): InstallScriptBuilder;
     removeOldReleases(): InstallScriptBuilder;
