@@ -5,8 +5,11 @@ import { spawn } from "child_process";
 export class Runner {
   run(command: string, ...args: Array<string>): Promise<string> {
     return new Promise<string>((resolve, reject) => {
+      console.log(`$ ${command} ${args.join(" ")}`);
+
       let data = "";
       let error = "";
+
       const handler = spawn(command, args);
       handler.stdout.on("data", (chunk) => {
         data += chunk;

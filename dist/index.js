@@ -1532,6 +1532,7 @@ const child_process_1 = __nccwpck_require__(32081);
 let Runner = class Runner {
     run(command, ...args) {
         return new Promise((resolve, reject) => {
+            console.log(`$ ${command} ${args.join(" ")}`);
             let data = "";
             let error = "";
             const handler = (0, child_process_1.spawn)(command, args);
