@@ -18,25 +18,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Builder = void 0;
 const di_1 = __nccwpck_require__(9270);
-const fs_1 = __importDefault(__nccwpck_require__(57147));
 const infrastructure_1 = __nccwpck_require__(18051);
 const platforms_1 = __nccwpck_require__(61217);
+const fs_1 = __nccwpck_require__(75312);
 const shell_1 = __nccwpck_require__(30432);
 const InstallScriptBuilder_1 = __nccwpck_require__(82542);
 const runNumberMax = 1000000;
 let Builder = class Builder {
     infrastructureManager;
     platformResolver;
+    fileSystem;
     runner;
-    constructor(infrastructureManager, platformResolver, runner) {
+    constructor(infrastructureManager, platformResolver, fileSystem, runner) {
         this.infrastructureManager = infrastructureManager;
         this.platformResolver = platformResolver;
+        this.fileSystem = fileSystem;
         this.runner = runner;
     }
     async build(githubContext, options) {
@@ -45,13 +44,13 @@ let Builder = class Builder {
             throw new Error("Repository not set");
         }
         const context = await this.createPlatformContext(githubContext, options);
-        fs_1.default.mkdirSync(context.local.buildDir, 0o755);
-        fs_1.default.mkdirSync(context.local.buildBinDir, 0o755);
+        this.fileSystem.mkdir(context.local.buildDir);
+        this.fileSystem.mkdir(context.local.buildBinDir);
         const infrastructureResult = await this.infrastructureManager.build(context);
         const platform = this.platformResolver.resolve(options.platform);
         const platformResult = await platform.build(context);
         await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
-        await new InstallScriptBuilder_1.InstallScriptBuilder(context)
+        await new InstallScriptBuilder_1.InstallScriptBuilder(context, this.fileSystem)
             .createDirectories()
             .extractReleaseArchive()
             .addStages(...infrastructureResult.preRelease)
@@ -74,7 +73,6 @@ let Builder = class Builder {
         if (!repository) {
             throw new Error("Repository not set");
         }
-        const branch = await this.runner.run("git", "symbolic-ref", "--short", "-q", "HEAD");
         const version = (githubContext.runNumber + runNumberMax).toString().substring(1);
         const localBuildDir = `build-${version}`;
         const remoteHomeDir = `/home/${options.user}`;
@@ -86,7 +84,7 @@ let Builder = class Builder {
             projectName: repository.replace(/^(\w+)-.*$/g, "$1"),
             serviceName: repository.replace(/-/g, "_"),
             version,
-            branch,
+            branch: githubContext.ref,
             infrastructureDir: options.infrastructureDir,
             local: {
                 buildDir: localBuildDir,
@@ -114,8 +112,10 @@ Builder = __decorate([
     __param(0, (0, di_1.Inject)()),
     __param(1, (0, di_1.Inject)()),
     __param(2, (0, di_1.Inject)()),
+    __param(3, (0, di_1.Inject)()),
     __metadata("design:paramtypes", [infrastructure_1.InfrastructureManager,
         platforms_1.PlatformResolver,
+        fs_1.FileSystem,
         shell_1.Runner])
 ], Builder);
 exports.Builder = Builder;
@@ -134,21 +134,19 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 /***/ }),
 
 /***/ 82542:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.InstallScriptBuilder = void 0;
-const fs_1 = __importDefault(__nccwpck_require__(57147));
 class InstallScriptBuilder {
     context;
+    fileSystem;
     stages = [];
-    constructor(context) {
+    constructor(context, fileSystem) {
         this.context = context;
+        this.fileSystem = fileSystem;
     }
     addStages(...stages) {
         stages.forEach(({ name, actions }) => {
@@ -205,8 +203,8 @@ class InstallScriptBuilder {
         });
     }
     async build(installFilename = "install.sh") {
-        this.stages.forEach((stage) => fs_1.default.writeFileSync(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n")));
-        fs_1.default.writeFileSync(`${this.context.local.buildBinDir}/${installFilename}`, ["set -e", "set -o pipefail", ...this.stages.map((stage) => `bash ${this.context.remote.buildBinDir}/${stage.filename}`)].join("\n"));
+        this.stages.forEach((stage) => this.fileSystem.writeFile(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n")));
+        this.fileSystem.writeFile(`${this.context.local.buildBinDir}/${installFilename}`, ["set -e", "set -o pipefail", ...this.stages.map((stage) => `bash ${this.context.remote.buildBinDir}/${stage.filename}`)].join("\n"));
     }
 }
 exports.InstallScriptBuilder = InstallScriptBuilder;
@@ -757,27 +755,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NginxInfrastructure = void 0;
 const di_1 = __nccwpck_require__(9270);
-const fs_1 = __importDefault(__nccwpck_require__(57147));
+const fs_1 = __nccwpck_require__(75312);
 const NginxConfigRenderer_1 = __nccwpck_require__(89001);
 let NginxInfrastructure = class NginxInfrastructure {
     renderer;
-    constructor(renderer) {
+    fileSystem;
+    constructor(renderer, fileSystem) {
         this.renderer = renderer;
+        this.fileSystem = fileSystem;
     }
     async build(context, config, parameters) {
         const localDir = `${context.local.buildDir}/nginx`;
-        fs_1.default.mkdirSync(localDir, 0o755);
+        this.fileSystem.mkdir(localDir);
         if (config.external) {
-            fs_1.default.writeFileSync(`${localDir}/${context.repositoryName}.external`, this.renderer.renderServer(context, config.external, true, parameters.domain));
+            this.fileSystem.writeFile(`${localDir}/${context.repositoryName}.external`, this.renderer.renderServer(context, config.external, true, parameters.domain));
         }
         if (config.internal) {
-            fs_1.default.writeFileSync(`${localDir}/${context.repositoryName}.internal`, this.renderer.renderServer(context, config.internal, false, `${context.repositoryName}.internal`));
+            this.fileSystem.writeFile(`${localDir}/${context.repositoryName}.internal`, this.renderer.renderServer(context, config.internal, false, `${context.repositoryName}.internal`));
         }
         return {
             preRelease: this.preRelease(context, config),
@@ -816,7 +813,8 @@ let NginxInfrastructure = class NginxInfrastructure {
 NginxInfrastructure = __decorate([
     (0, di_1.Injectable)(),
     __param(0, (0, di_1.Inject)()),
-    __metadata("design:paramtypes", [NginxConfigRenderer_1.NginxConfigRenderer])
+    __param(1, (0, di_1.Inject)()),
+    __metadata("design:paramtypes", [NginxConfigRenderer_1.NginxConfigRenderer, fs_1.FileSystem])
 ], NginxInfrastructure);
 exports.NginxInfrastructure = NginxInfrastructure;
 
@@ -925,18 +923,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SupervisorInfrastructure = void 0;
 const di_1 = __nccwpck_require__(9270);
-const fs_1 = __importDefault(__nccwpck_require__(57147));
+const fs_1 = __nccwpck_require__(75312);
 let SupervisorInfrastructure = class SupervisorInfrastructure {
+    fileSystem;
+    constructor(fileSystem) {
+        this.fileSystem = fileSystem;
+    }
     async build(context, config) {
         const localDir = `${context.local.buildDir}/supervisor`;
-        fs_1.default.mkdirSync(localDir, 0o755);
-        fs_1.default.writeFileSync(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
+        this.fileSystem.mkdir(localDir);
+        this.fileSystem.writeFile(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
         return {
             preRelease: this.preRelease(context),
             postRelease: this.postRelease(context)
@@ -993,7 +998,9 @@ let SupervisorInfrastructure = class SupervisorInfrastructure {
     }
 };
 SupervisorInfrastructure = __decorate([
-    (0, di_1.Injectable)()
+    (0, di_1.Injectable)(),
+    __param(0, (0, di_1.Inject)()),
+    __metadata("design:paramtypes", [fs_1.FileSystem])
 ], SupervisorInfrastructure);
 exports.SupervisorInfrastructure = SupervisorInfrastructure;
 
@@ -1214,6 +1221,65 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__nccwpck_require__(89491), exports);
+
+
+/***/ }),
+
+/***/ 20212:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FileSystem = void 0;
+const di_1 = __nccwpck_require__(9270);
+const fs_1 = __importDefault(__nccwpck_require__(57147));
+let FileSystem = class FileSystem {
+    mkdir(path) {
+        fs_1.default.mkdirSync(path, 0o755);
+    }
+    writeFile(path, content) {
+        fs_1.default.writeFileSync(path, content);
+    }
+};
+FileSystem = __decorate([
+    (0, di_1.Injectable)()
+], FileSystem);
+exports.FileSystem = FileSystem;
+
+
+/***/ }),
+
+/***/ 75312:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(20212), exports);
 
 
 /***/ }),

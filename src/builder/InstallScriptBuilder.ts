@@ -1,5 +1,5 @@
-import fs from "fs";
 import { Context, ReleaseStage } from "../models";
+import { FileSystem } from "../utils/fs";
 
 export class InstallScriptBuilder {
   private readonly stages: Array<{
@@ -8,7 +8,7 @@ export class InstallScriptBuilder {
     readonly actions: Array<string>;
   }> = [];
 
-  constructor(private readonly context: Context) {}
+  constructor(private readonly context: Context, private readonly fileSystem: FileSystem) {}
 
   addStages(...stages: Array<ReleaseStage>): InstallScriptBuilder {
     stages.forEach(({ name, actions }) => {
@@ -72,10 +72,13 @@ export class InstallScriptBuilder {
 
   async build(installFilename = "install.sh"): Promise<void> {
     this.stages.forEach((stage) =>
-      fs.writeFileSync(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n"))
+      this.fileSystem.writeFile(
+        `${this.context.local.buildBinDir}/${stage.filename}`,
+        [`echo '${stage.name}'`, ...stage.actions].join("\n")
+      )
     );
 
-    fs.writeFileSync(
+    this.fileSystem.writeFile(
       `${this.context.local.buildBinDir}/${installFilename}`,
       ["set -e", "set -o pipefail", ...this.stages.map((stage) => `bash ${this.context.remote.buildBinDir}/${stage.filename}`)].join("\n")
     );

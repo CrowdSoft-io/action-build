@@ -1,9 +1,9 @@
 import { Context as GithubContext } from "@actions/github/lib/context";
 import { Inject, Injectable } from "@tsed/di";
-import fs from "fs";
 import { InfrastructureManager } from "../infrastructure";
 import { Context, Result } from "../models";
 import { PlatformName, PlatformResolver } from "../platforms";
+import { FileSystem } from "../utils/fs";
 import { Runner } from "../utils/shell";
 import { BuilderOptions } from "./BuilderOptions";
 import { InstallScriptBuilder } from "./InstallScriptBuilder";
@@ -15,6 +15,7 @@ export class Builder {
   constructor(
     @Inject() private readonly infrastructureManager: InfrastructureManager,
     @Inject() private readonly platformResolver: PlatformResolver,
+    @Inject() private readonly fileSystem: FileSystem,
     @Inject() private readonly runner: Runner
   ) {}
 
@@ -26,8 +27,8 @@ export class Builder {
 
     const context = await this.createPlatformContext(githubContext, options);
 
-    fs.mkdirSync(context.local.buildDir, 0o755);
-    fs.mkdirSync(context.local.buildBinDir, 0o755);
+    this.fileSystem.mkdir(context.local.buildDir);
+    this.fileSystem.mkdir(context.local.buildBinDir);
 
     const infrastructureResult = await this.infrastructureManager.build(context);
 
@@ -36,7 +37,7 @@ export class Builder {
 
     await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
 
-    await new InstallScriptBuilder(context)
+    await new InstallScriptBuilder(context, this.fileSystem)
       .createDirectories()
       .extractReleaseArchive()
       .addStages(...infrastructureResult.preRelease)
@@ -62,7 +63,6 @@ export class Builder {
       throw new Error("Repository not set");
     }
 
-    const branch = await this.runner.run("git", "symbolic-ref", "--short", "-q", "HEAD");
     const version = (githubContext.runNumber + runNumberMax).toString().substring(1);
     const localBuildDir = `build-${version}`;
     const remoteHomeDir = `/home/${options.user}`;
@@ -75,7 +75,7 @@ export class Builder {
       projectName: repository.replace(/^(\w+)-.*$/g, "$1"),
       serviceName: repository.replace(/-/g, "_"),
       version,
-      branch,
+      branch: githubContext.ref,
       infrastructureDir: options.infrastructureDir,
       local: {
         buildDir: localBuildDir,

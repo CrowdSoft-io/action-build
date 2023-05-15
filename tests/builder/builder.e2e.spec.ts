@@ -1,10 +1,10 @@
 import { Context } from "@actions/github/lib/context";
 import { InjectorService } from "@tsed/di";
-import fs from "fs";
 import { Builder, BuilderOptions } from "../../src/builder";
+import { FileSystem } from "../../src/utils/fs";
 import { Runner } from "../../src/utils/shell";
 
-jest.mock("fs");
+jest.mock("../../src/utils/fs");
 jest.mock("../../src/utils/shell");
 
 describe("Build e2e", () => {
@@ -23,7 +23,7 @@ describe("Build e2e", () => {
         }
       }
     },
-    ref: "",
+    ref: "test",
     runId: 0,
     runNumber: 10,
     serverUrl: "",
@@ -40,22 +40,24 @@ describe("Build e2e", () => {
     platform: "next",
     user: "tester",
     maxReleases: 5,
-    infrastructureDir: "infrastructure"
+    infrastructureDir: "tests/mock/infrastructure"
   };
 
   let injector: InjectorService;
   let builder: Builder;
 
   beforeAll(async () => {
+    (FileSystem as any).mockImplementation(() => ({
+      mkdir: (path: string) => console.log(["[MKDIR]", path, options]),
+      writeFile: (path: string, content: string) => console.log(["[WRITE]", path, content])
+    }));
+
     (Runner as any).mockImplementation(() => ({
       run: async (command: string, ...args: Array<string>) => {
         console.log(`[RUN] ${command} ${args.join(" ")}`);
-        return "test";
+        return "";
       }
     }));
-
-    (fs as any).mkdirSync = jest.fn().mockImplementation((path, options) => console.log(["[MKDIR]", path, options]));
-    (fs as any).writeFileSync = jest.fn().mockImplementation((file, content) => console.log(["[WRITE]", file, content]));
 
     injector = new InjectorService();
     await injector.load();

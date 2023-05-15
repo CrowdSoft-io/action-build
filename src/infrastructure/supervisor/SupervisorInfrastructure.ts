@@ -1,17 +1,19 @@
-import { Injectable } from "@tsed/di";
-import fs from "fs";
+import { Inject, Injectable } from "@tsed/di";
 import { Context, ReleaseStage } from "../../models";
+import { FileSystem } from "../../utils/fs";
 import { InfrastructureBuildResult } from "../InfrastructureBuildResult";
 import { InfrastructureInterface } from "../InfrastructureInterface";
 import { SupervisorConfig } from "./SupervisorConfig";
 
 @Injectable()
 export class SupervisorInfrastructure implements InfrastructureInterface {
+  constructor(@Inject() private readonly fileSystem: FileSystem) {}
+
   async build(context: Context, config: SupervisorConfig): Promise<InfrastructureBuildResult> {
     const localDir = `${context.local.buildDir}/supervisor`;
 
-    fs.mkdirSync(localDir, 0o755);
-    fs.writeFileSync(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
+    this.fileSystem.mkdir(localDir);
+    this.fileSystem.writeFile(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
 
     return {
       preRelease: this.preRelease(context),
