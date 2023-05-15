@@ -50,7 +50,7 @@ let Builder = class Builder {
         const infrastructureResult = await this.infrastructureManager.build(context);
         const platform = this.platformResolver.resolve(options.platform);
         const platformResult = await platform.build(context);
-        await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
+        await this.runner.run("tar", "-czvf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
         await new InstallScriptBuilder_1.InstallScriptBuilder(context)
             .createDirectories()
             .extractReleaseArchive()
@@ -62,6 +62,9 @@ let Builder = class Builder {
             .removeOldReleases()
             .removeBuildArtifacts()
             .build();
+        await this.runner.run("ls", "-la");
+        await this.runner.run("ls", "-la", context.local.buildDir);
+        await this.runner.run("ls", "-la", context.local.buildBinDir);
         return {
             version: context.version,
             buildDir: context.local.buildDir,
@@ -1544,7 +1547,7 @@ let Runner = class Runner {
                 error += chunk;
                 console.error(chunk.toString());
             });
-            handler.on("close", (code) => (code !== 0 ? reject(error || `${command} process exited with code ${code}`) : resolve(data)));
+            handler.on("close", (code) => code === 0 ? resolve(data.toString()) : reject(error ? error.toString() : `${command} process exited with code ${code}`));
         });
     }
 };

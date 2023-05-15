@@ -19,7 +19,9 @@ export class Runner {
         error += chunk;
         console.error(chunk.toString());
       });
-      handler.on("close", (code) => (code !== 0 ? reject(error || `${command} process exited with code ${code}`) : resolve(data)));
+      handler.on("close", (code) =>
+        code === 0 ? resolve(data.toString()) : reject(error ? error.toString() : `${command} process exited with code ${code}`)
+      );
     });
   }
 }
