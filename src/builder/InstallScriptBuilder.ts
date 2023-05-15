@@ -74,7 +74,7 @@ export class InstallScriptBuilder {
     this.stages.forEach((stage) =>
       this.fileSystem.writeFile(
         `${this.context.local.buildBinDir}/${stage.filename}`,
-        [`echo '${stage.name}'`, ...stage.actions, "echo 'Done."].join("\n")
+        [`echo '${stage.name}'`, ...stage.actions, "echo 'Done.'"].join("\n")
       )
     );
 
