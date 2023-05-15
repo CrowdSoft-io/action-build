@@ -1542,7 +1542,7 @@ let Runner = class Runner {
             });
             handler.stderr.on("data", (chunk) => {
                 error += chunk;
-                console.error(data.toString());
+                console.error(chunk.toString());
             });
             handler.on("close", (code) => (code !== 0 ? reject(error || `${command} process exited with code ${code}`) : resolve(data)));
         });
