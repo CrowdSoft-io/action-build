@@ -62,9 +62,6 @@ let Builder = class Builder {
             .removeOldReleases()
             .removeBuildArtifacts()
             .build();
-        await this.runner.run("ls", "-la");
-        await this.runner.run("ls", "-la", context.local.buildDir);
-        await this.runner.run("ls", "-la", context.local.buildBinDir);
         return {
             version: context.version,
             buildDir: context.local.buildDir,
@@ -356,7 +353,13 @@ let InfrastructureManager = class InfrastructureManager {
     }
     async build(context) {
         const { parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
-        const mergedParameters = { ...parameters?.base, ...parameters?.[context.branch] };
+        let mergedParameters = {};
+        if (parameters?.base) {
+            mergedParameters = { ...mergedParameters, ...parameters.base };
+        }
+        if (parameters?.[context.branch]) {
+            mergedParameters = { ...mergedParameters, ...parameters[context.branch] };
+        }
         const result = {
             preRelease: [],
             postRelease: []

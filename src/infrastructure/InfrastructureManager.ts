@@ -13,7 +13,14 @@ export class InfrastructureManager {
 
   async build(context: Context): Promise<InfrastructureBuildResult> {
     const { parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
-    const mergedParameters = { ...parameters?.base, ...parameters?.[context.branch] };
+
+    let mergedParameters: Record<string, any> = {};
+    if (parameters?.base) {
+      mergedParameters = { ...mergedParameters, ...parameters.base };
+    }
+    if (parameters?.[context.branch]) {
+      mergedParameters = { ...mergedParameters, ...parameters[context.branch] };
+    }
 
     const result: InfrastructureBuildResult = {
       preRelease: [],

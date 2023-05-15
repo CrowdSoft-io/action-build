@@ -48,10 +48,6 @@ export class Builder {
       .removeBuildArtifacts()
       .build();
 
-    await this.runner.run("ls", "-la");
-    await this.runner.run("ls", "-la", context.local.buildDir);
-    await this.runner.run("ls", "-la", context.local.buildBinDir);
-
     return {
       version: context.version,
       buildDir: context.local.buildDir,
