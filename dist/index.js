@@ -203,7 +203,7 @@ class InstallScriptBuilder {
         });
     }
     async build(installFilename = "install.sh") {
-        this.stages.forEach((stage) => this.fileSystem.writeFile(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions].join("\n")));
+        this.stages.forEach((stage) => this.fileSystem.writeFile(`${this.context.local.buildBinDir}/${stage.filename}`, [`echo '${stage.name}'`, ...stage.actions, "echo 'Done."].join("\n")));
         this.fileSystem.writeFile(`${this.context.local.buildBinDir}/${installFilename}`, ["set -e", "set -o pipefail", ...this.stages.map((stage) => `bash ${this.context.remote.buildBinDir}/${stage.filename}`)].join("\n"));
     }
 }
