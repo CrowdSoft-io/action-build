@@ -31,4 +31,4 @@ async function main(): Promise<void> {
   await injector.destroy();
 }
 
-main().catch((error) => core.setFailed(error.message));
+main().catch((error) => core.setFailed(error?.message || "Build failed"));

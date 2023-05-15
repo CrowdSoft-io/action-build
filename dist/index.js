@@ -294,7 +294,7 @@ async function main() {
     console.log(`Building "${platform}" version "${result.version}" finished.`);
     await injector.destroy();
 }
-main().catch((error) => core.setFailed(error.message));
+main().catch((error) => core.setFailed(error?.message || "Build failed"));
 
 
 /***/ }),
@@ -1537,11 +1537,11 @@ let Runner = class Runner {
             const handler = (0, child_process_1.spawn)(command, args);
             handler.stdout.on("data", (chunk) => {
                 data += chunk;
-                console.log(chunk);
+                console.log(chunk.toString());
             });
             handler.stderr.on("data", (data) => {
                 hasError = true;
-                console.error(data);
+                console.error(data.toString());
             });
             handler.on("close", () => (hasError ? reject() : resolve(data)));
         });

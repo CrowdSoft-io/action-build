@@ -10,11 +10,11 @@ export class Runner {
       const handler = spawn(command, args);
       handler.stdout.on("data", (chunk) => {
         data += chunk;
-        console.log(chunk);
+        console.log(chunk.toString());
       });
       handler.stderr.on("data", (data) => {
         hasError = true;
-        console.error(data);
+        console.error(data.toString());
       });
       handler.on("close", () => (hasError ? reject() : resolve(data)));
     });
