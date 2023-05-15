@@ -1170,7 +1170,7 @@ let NextPlatform = class NextPlatform {
         await this.runner.run("rm", "-rf", "node_modules");
         await packageManager.install({ production: true, ignoreScripts: true, frozenLockfile: true });
         return {
-            files: ["*", ".??*"],
+            files: [".next", "node_modules", "package.json"],
             preRelease: [],
             postRelease: []
         };
