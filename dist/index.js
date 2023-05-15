@@ -50,7 +50,7 @@ let Builder = class Builder {
         const infrastructureResult = await this.infrastructureManager.build(context);
         const platform = this.platformResolver.resolve(options.platform);
         const platformResult = await platform.build(context);
-        await this.runner.run("tar", "-czvf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
+        await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
         await new InstallScriptBuilder_1.InstallScriptBuilder(context)
             .createDirectories()
             .extractReleaseArchive()

@@ -34,7 +34,7 @@ export class Builder {
     const platform = this.platformResolver.resolve(options.platform as PlatformName);
     const platformResult = await platform.build(context);
 
-    await this.runner.run("tar", "-czvf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
+    await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
 
     await new InstallScriptBuilder(context)
       .createDirectories()
