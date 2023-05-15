@@ -1473,7 +1473,7 @@ let YarnPackageManager = class YarnPackageManager {
         if (options?.frozenLockfile) {
             args.push("--frozen-lockfile");
         }
-        await this.runner.run("yarn", "install", ...args);
+        await this.runner.run("yarn", "install", "--silent", ...args);
     }
     async run(command, ...args) {
         await this.runner.run("yarn", command, ...args);
