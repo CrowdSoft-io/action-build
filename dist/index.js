@@ -48,7 +48,7 @@ let Builder = class Builder {
         this.fileSystem.mkdir(context.local.buildBinDir);
         const infrastructureResult = await this.infrastructureManager.build(context);
         const platform = this.platformResolver.resolve(options.platform);
-        const platformResult = await platform.build(context);
+        const platformResult = await platform.build(context, infrastructureResult.environment);
         await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
         await new InstallScriptBuilder_1.InstallScriptBuilder(context, this.fileSystem)
             .createDirectories()
@@ -351,7 +351,14 @@ let InfrastructureManager = class InfrastructureManager {
         this.infrastructureResolver = infrastructureResolver;
     }
     async build(context) {
-        const { parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
+        const { environments, parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
+        let environment = { SENTRY_RELEASE: context.version };
+        if (environments?.base) {
+            environment = { ...environment, ...environments.base };
+        }
+        if (environments?.[context.branch]) {
+            environment = { ...environment, ...environments[context.branch] };
+        }
         let mergedParameters = {};
         if (parameters?.base) {
             mergedParameters = { ...mergedParameters, ...parameters.base };
@@ -360,6 +367,7 @@ let InfrastructureManager = class InfrastructureManager {
             mergedParameters = { ...mergedParameters, ...parameters[context.branch] };
         }
         const result = {
+            environment,
             preRelease: [],
             postRelease: []
         };
@@ -1169,19 +1177,27 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NextPlatform = void 0;
 const di_1 = __nccwpck_require__(9270);
+const fs_1 = __nccwpck_require__(75312);
 const nodejs_1 = __nccwpck_require__(99140);
 const shell_1 = __nccwpck_require__(30432);
 let NextPlatform = class NextPlatform {
     packageManagerResolver;
+    fileSystem;
     runner;
-    constructor(packageManagerResolver, runner) {
+    constructor(packageManagerResolver, fileSystem, runner) {
         this.packageManagerResolver = packageManagerResolver;
+        this.fileSystem = fileSystem;
         this.runner = runner;
     }
-    async build(context) {
+    async build(context, environment) {
         const packageManager = this.packageManagerResolver.resolve();
         process.env.CI = "true";
-        process.env.SENTRY_RELEASE = context.version;
+        const lines = [];
+        for (const name in environment) {
+            process.env[name] = environment[name];
+            lines.push(`${name}='${environment[name]}'`);
+        }
+        this.fileSystem.writeFile(".env", lines.join("\n"));
         await packageManager.install({ frozenLockfile: true });
         await packageManager.run("build");
         await this.runner.run("rm", "-rf", "node_modules");
@@ -1197,7 +1213,10 @@ NextPlatform = __decorate([
     (0, di_1.Injectable)(),
     __param(0, (0, di_1.Inject)()),
     __param(1, (0, di_1.Inject)()),
-    __metadata("design:paramtypes", [nodejs_1.PackageManagerResolver, shell_1.Runner])
+    __param(2, (0, di_1.Inject)()),
+    __metadata("design:paramtypes", [nodejs_1.PackageManagerResolver,
+        fs_1.FileSystem,
+        shell_1.Runner])
 ], NextPlatform);
 exports.NextPlatform = NextPlatform;
 

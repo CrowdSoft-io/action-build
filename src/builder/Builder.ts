@@ -33,7 +33,7 @@ export class Builder {
     const infrastructureResult = await this.infrastructureManager.build(context);
 
     const platform = this.platformResolver.resolve(options.platform as PlatformName);
-    const platformResult = await platform.build(context);
+    const platformResult = await platform.build(context, infrastructureResult.environment);
 
     await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
 

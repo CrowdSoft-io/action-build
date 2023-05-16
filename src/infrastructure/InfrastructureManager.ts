@@ -11,8 +11,16 @@ import { InfrastructureResolver } from "./InfrastructureResolver";
 export class InfrastructureManager {
   constructor(@Inject() private readonly infrastructureResolver: InfrastructureResolver) {}
 
-  async build(context: Context): Promise<InfrastructureBuildResult> {
-    const { parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
+  async build(context: Context): Promise<InfrastructureBuildResult & { environment: Record<string, string> }> {
+    const { environments, parameters, ...configs } = this.loadConfigs(context.infrastructureDir);
+
+    let environment: Record<string, string> = { SENTRY_RELEASE: context.version };
+    if (environments?.base) {
+      environment = { ...environment, ...environments.base };
+    }
+    if (environments?.[context.branch]) {
+      environment = { ...environment, ...environments[context.branch] };
+    }
 
     let mergedParameters: Record<string, any> = {};
     if (parameters?.base) {
@@ -22,7 +30,8 @@ export class InfrastructureManager {
       mergedParameters = { ...mergedParameters, ...parameters[context.branch] };
     }
 
-    const result: InfrastructureBuildResult = {
+    const result: InfrastructureBuildResult & { environment: Record<string, string> } = {
+      environment,
       preRelease: [],
       postRelease: []
     };
