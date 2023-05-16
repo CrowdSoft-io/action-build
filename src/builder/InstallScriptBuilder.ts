@@ -53,7 +53,7 @@ export class InstallScriptBuilder {
     return this.addStages({
       name: "Remove old releases",
       actions: [
-        `releases=(\`find '${this.context.remote.releasesRoot}' -maxdepth 1 -type d | egrep -i '/[0-9]{6}-[0-9]{3}$' | sort\`)`,
+        `releases=(\`find '${this.context.remote.releasesRoot}' -maxdepth 1 -type d | egrep -i '/[0-9]{6}-[0-9]+$' | sort\`)`,
         `n=$(expr \${#releases[@]} - ${this.context.remote.maxReleases})`,
         "for (( i=0; i<$n; i++ ))",
         "do",

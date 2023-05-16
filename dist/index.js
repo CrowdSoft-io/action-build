@@ -73,7 +73,7 @@ let Builder = class Builder {
         if (!repository) {
             throw new Error("Repository not set");
         }
-        const version = (githubContext.runNumber + runNumberMax).toString().substring(1);
+        const version = (githubContext.runNumber + runNumberMax).toString().substring(1) + "-" + githubContext.runId;
         const localBuildDir = `build-${version}`;
         const remoteHomeDir = `/home/${options.user}`;
         const remoteWwwRoot = `${remoteHomeDir}/www`;
@@ -84,7 +84,7 @@ let Builder = class Builder {
             projectName: repository.replace(/^(\w+)-.*$/g, "$1"),
             serviceName: repository.replace(/-/g, "_"),
             version,
-            branch: githubContext.ref,
+            branch: githubContext.ref.split("/").reverse()[0],
             infrastructureDir: options.infrastructureDir,
             local: {
                 buildDir: localBuildDir,
@@ -187,7 +187,7 @@ class InstallScriptBuilder {
         return this.addStages({
             name: "Remove old releases",
             actions: [
-                `releases=(\`find '${this.context.remote.releasesRoot}' -maxdepth 1 -type d | egrep -i '/[0-9]{6}-[0-9]{3}$' | sort\`)`,
+                `releases=(\`find '${this.context.remote.releasesRoot}' -maxdepth 1 -type d | egrep -i '/[0-9]{6}-[0-9]+$' | sort\`)`,
                 `n=$(expr \${#releases[@]} - ${this.context.remote.maxReleases})`,
                 "for (( i=0; i<$n; i++ ))",
                 "do",

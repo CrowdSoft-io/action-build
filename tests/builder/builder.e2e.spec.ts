@@ -24,7 +24,7 @@ describe("Build e2e", () => {
       }
     },
     ref: "test",
-    runId: 0,
+    runId: 123,
     runNumber: 10,
     serverUrl: "",
     sha: "",
@@ -78,6 +78,6 @@ describe("Build e2e", () => {
 
   it("action build works", async () => {
     const result = await builder.build(githubContext, options);
-    expect(result.version).toEqual("000010");
+    expect(result.version).toEqual("000010-123");
   });
 });
