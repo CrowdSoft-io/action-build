@@ -30,7 +30,7 @@ export class SupervisorInfrastructure implements InfrastructureInterface {
 
     for (const program of config.programs) {
       lines.push(`[program:${context.serviceName}_${program.name}]`);
-      lines.push(`command=${program.command}`);
+      lines.push(`command=${program.command.replace("%project_root%", context.remote.projectRoot)}`);
       lines.push(`directory=${context.remote.projectRoot}`);
       lines.push("autostart=true");
       lines.push("autorestart=true");
