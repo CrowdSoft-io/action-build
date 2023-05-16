@@ -20,15 +20,17 @@ export class InstallScriptBuilder {
   }
 
   createDirectories(): InstallScriptBuilder {
+    const paths: Array<string> = [
+      this.context.remote.logsDir,
+      this.context.remote.nginxDir,
+      this.context.remote.releaseDir,
+      this.context.remote.supervisorDir,
+      this.context.remote.wwwRoot
+    ];
+
     return this.addStages({
       name: "Create directories",
-      actions: [
-        `[[ ! -d '${this.context.remote.logsDir}' ]] && mkdir -p '${this.context.remote.logsDir}'`,
-        `[[ ! -d '${this.context.remote.nginxDir}' ]] && mkdir -p '${this.context.remote.nginxDir}'`,
-        `[[ ! -d '${this.context.remote.releaseDir}' ]] && mkdir -p '${this.context.remote.releaseDir}'`,
-        `[[ ! -d '${this.context.remote.supervisorDir}' ]] && mkdir -p '${this.context.remote.supervisorDir}'`,
-        `[[ ! -d '${this.context.remote.wwwRoot}' ]] && mkdir -p '${this.context.remote.wwwRoot}'`
-      ]
+      actions: paths.map((path) => `[[ ! -d '${path}' ]] && mkdir -p '${path}' || echo '${path} already created'`)
     });
   }
 
@@ -74,7 +76,7 @@ export class InstallScriptBuilder {
     this.stages.forEach((stage) =>
       this.fileSystem.writeFile(
         `${this.context.local.buildBinDir}/${stage.filename}`,
-        [`echo '${stage.name}'`, ...stage.actions, "echo 'Done.'"].join("\n")
+        [`echo '${stage.name}'`, ...stage.actions].join("\n")
       )
     );
 
