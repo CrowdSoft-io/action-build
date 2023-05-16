@@ -977,7 +977,9 @@ let SupervisorInfrastructure = class SupervisorInfrastructure {
         return [
             {
                 name: "Supervisor stop",
-                actions: [`sudo supervisorctl status | grep ${context.serviceName} && sudo supervisorctl stop ${context.serviceName}:*`]
+                actions: [
+                    `sudo supervisorctl status | grep ${context.serviceName} && sudo supervisorctl stop ${context.serviceName}:* || echo "Not ran"`
+                ]
             },
             {
                 name: "Supervisor config update",
