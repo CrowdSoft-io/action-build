@@ -942,7 +942,7 @@ let SupervisorInfrastructure = class SupervisorInfrastructure {
     async build(context, config) {
         const localDir = `${context.local.buildDir}/supervisor`;
         this.fileSystem.mkdir(localDir);
-        this.fileSystem.writeFile(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
+        this.fileSystem.writeFile(`${localDir}/${context.repositoryName}.conf`, this.renderConfig(context, config));
         return {
             preRelease: this.preRelease(context),
             postRelease: this.postRelease(context)
@@ -969,8 +969,8 @@ let SupervisorInfrastructure = class SupervisorInfrastructure {
         return lines.join("\n");
     }
     preRelease(context) {
-        const configSrc = `${context.remote.buildDir}/supervisor/${context.serviceName}.conf`;
-        const configDist = `${context.remote.supervisorDir}/${context.serviceName}.conf`;
+        const configSrc = `${context.remote.buildDir}/supervisor/${context.repositoryName}.conf`;
+        const configDist = `${context.remote.supervisorDir}/${context.repositoryName}.conf`;
         return [
             {
                 name: "Supervisor stop",

@@ -13,7 +13,7 @@ export class SupervisorInfrastructure implements InfrastructureInterface {
     const localDir = `${context.local.buildDir}/supervisor`;
 
     this.fileSystem.mkdir(localDir);
-    this.fileSystem.writeFile(`${localDir}/${context.serviceName}.conf`, this.renderConfig(context, config));
+    this.fileSystem.writeFile(`${localDir}/${context.repositoryName}.conf`, this.renderConfig(context, config));
 
     return {
       preRelease: this.preRelease(context),
@@ -45,8 +45,8 @@ export class SupervisorInfrastructure implements InfrastructureInterface {
   }
 
   private preRelease(context: Context): Array<ReleaseStage> {
-    const configSrc = `${context.remote.buildDir}/supervisor/${context.serviceName}.conf`;
-    const configDist = `${context.remote.supervisorDir}/${context.serviceName}.conf`;
+    const configSrc = `${context.remote.buildDir}/supervisor/${context.repositoryName}.conf`;
+    const configDist = `${context.remote.supervisorDir}/${context.repositoryName}.conf`;
 
     return [
       {
