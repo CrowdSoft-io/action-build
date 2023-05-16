@@ -63,7 +63,7 @@ export class Builder {
       throw new Error("Repository not set");
     }
 
-    const version = (githubContext.runNumber + runNumberMax).toString().substring(1) + "-" + githubContext.runId;
+    const version = (githubContext.runNumber + runNumberMax).toString().substring(1) + "-" + Date.now();
     const localBuildDir = `build-${version}`;
     const remoteHomeDir = `/home/${options.user}`;
     const remoteWwwRoot = `${remoteHomeDir}/www`;

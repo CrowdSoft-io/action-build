@@ -78,6 +78,6 @@ describe("Build e2e", () => {
 
   it("action build works", async () => {
     const result = await builder.build(githubContext, options);
-    expect(result.version).toEqual("000010-123");
+    expect(result.version).toMatch(/[0-9]{6}-[0-9]+$/);
   });
 });
