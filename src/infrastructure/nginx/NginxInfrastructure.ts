@@ -18,14 +18,14 @@ export class NginxInfrastructure implements InfrastructureInterface {
     if (config.external) {
       this.fileSystem.writeFile(
         `${localDir}/${context.repositoryName}.external`,
-        this.renderer.renderServer(context, config.external, true, parameters.domain)
+        this.renderer.renderServer(context, config.external, parameters.domain, true, !!config.external.with_www)
       );
     }
 
     if (config.internal) {
       this.fileSystem.writeFile(
         `${localDir}/${context.repositoryName}.internal`,
-        this.renderer.renderServer(context, config.internal, false, `${context.repositoryName}.internal`)
+        this.renderer.renderServer(context, config.internal, `${context.repositoryName}.internal`)
       );
     }
 

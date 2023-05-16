@@ -4,7 +4,7 @@ import { NginxLocation, NginxPhpService, NginxProxyService, NginxServer, NginxSe
 
 @Injectable()
 export class NginxConfigRenderer {
-  renderServer(context: Context, server: NginxServer, external: boolean, domain: string): string {
+  renderServer(context: Context, server: NginxServer, domain: string, external = false, withWww = false): string {
     const lines: Array<string> = [];
 
     lines.push("server {");
@@ -53,35 +53,37 @@ export class NginxConfigRenderer {
     lines.push("");
 
     if (external) {
-      lines.push(...this.renderExternalRedirects(domain));
+      lines.push(...this.renderExternalRedirects(domain, withWww));
     }
 
     return lines.join("\n");
   }
 
-  private renderExternalRedirects(domain: string): Array<string> {
+  private renderExternalRedirects(domain: string, withWww: boolean): Array<string> {
     const lines: Array<string> = [];
 
-    lines.push("server {");
-    lines.push(`    server_name www.${domain};`);
-    lines.push(`    access_log /var/log/nginx/www.${domain}.access.log;`);
-    lines.push(`    error_log  /var/log/nginx/www.${domain}.error.log;`);
-    lines.push("");
-    lines.push(`    if ($host = www.${domain}) {`);
-    lines.push(`        return 301 https://${domain}$request_uri;`);
-    lines.push("    }");
-    lines.push("");
-    lines.push(`    ssl_certificate     /etc/letsencrypt/live/www.${domain}/fullchain.pem;`);
-    lines.push(`    ssl_certificate_key /etc/letsencrypt/live/www.${domain}/privkey.pem;`);
-    lines.push("    include             /etc/letsencrypt/options-ssl-nginx.conf;");
-    lines.push("    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;");
-    lines.push("");
-    lines.push("    listen 443 ssl;");
-    lines.push("    listen [::]:443 ssl;");
-    lines.push("");
-    lines.push("    return 404;");
-    lines.push("}");
-    lines.push("");
+    if (withWww) {
+      lines.push("server {");
+      lines.push(`    server_name www.${domain};`);
+      lines.push(`    access_log /var/log/nginx/www.${domain}.access.log;`);
+      lines.push(`    error_log  /var/log/nginx/www.${domain}.error.log;`);
+      lines.push("");
+      lines.push(`    if ($host = www.${domain}) {`);
+      lines.push(`        return 301 https://${domain}$request_uri;`);
+      lines.push("    }");
+      lines.push("");
+      lines.push(`    ssl_certificate     /etc/letsencrypt/live/www.${domain}/fullchain.pem;`);
+      lines.push(`    ssl_certificate_key /etc/letsencrypt/live/www.${domain}/privkey.pem;`);
+      lines.push("    include             /etc/letsencrypt/options-ssl-nginx.conf;");
+      lines.push("    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;");
+      lines.push("");
+      lines.push("    listen 443 ssl;");
+      lines.push("    listen [::]:443 ssl;");
+      lines.push("");
+      lines.push("    return 404;");
+      lines.push("}");
+      lines.push("");
+    }
 
     lines.push("server {");
     lines.push(`    server_name ${domain};`);
@@ -99,21 +101,23 @@ export class NginxConfigRenderer {
     lines.push("}");
     lines.push("");
 
-    lines.push("server {");
-    lines.push(`    server_name www.${domain};`);
-    lines.push(`    access_log /var/log/nginx/www.${domain}-80.access.log;`);
-    lines.push(`    error_log  /var/log/nginx/www.${domain}-80.error.log;`);
-    lines.push("");
-    lines.push(`    if ($host = www.${domain}) {`);
-    lines.push(`        return 301 https://${domain}$request_uri;`);
-    lines.push("    }");
-    lines.push("");
-    lines.push("    listen 80;");
-    lines.push("    listen [::]:80;");
-    lines.push("");
-    lines.push("    return 404;");
-    lines.push("}");
-    lines.push("");
+    if (withWww) {
+      lines.push("server {");
+      lines.push(`    server_name www.${domain};`);
+      lines.push(`    access_log /var/log/nginx/www.${domain}-80.access.log;`);
+      lines.push(`    error_log  /var/log/nginx/www.${domain}-80.error.log;`);
+      lines.push("");
+      lines.push(`    if ($host = www.${domain}) {`);
+      lines.push(`        return 301 https://${domain}$request_uri;`);
+      lines.push("    }");
+      lines.push("");
+      lines.push("    listen 80;");
+      lines.push("    listen [::]:80;");
+      lines.push("");
+      lines.push("    return 404;");
+      lines.push("}");
+      lines.push("");
+    }
 
     return lines;
   }

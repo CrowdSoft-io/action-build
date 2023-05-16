@@ -26,6 +26,7 @@ export type NginxLocation = {
 
 export type NginxServer = {
   readonly locations: Array<NginxLocation>;
+  readonly with_www?: boolean;
 };
 
 export interface NginxConfig {
