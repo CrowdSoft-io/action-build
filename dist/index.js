@@ -284,7 +284,6 @@ async function main() {
     const maxReleases = +core.getInput("max_releases");
     const infrastructureDir = core.getInput("infrastructure_dir");
     console.log(`Building "${platform}" started.`);
-    console.log(github.context);
     const result = await builder.build(github.context, { platform, user, maxReleases, infrastructureDir });
     core.setOutput("version", result.version);
     core.setOutput("build_dir", result.buildDir);

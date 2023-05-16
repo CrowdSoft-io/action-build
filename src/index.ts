@@ -18,7 +18,6 @@ async function main(): Promise<void> {
   const infrastructureDir = core.getInput("infrastructure_dir");
 
   console.log(`Building "${platform}" started.`);
-  console.log(github.context);
 
   const result = await builder.build(github.context, { platform, user, maxReleases, infrastructureDir });
 
