@@ -51,9 +51,7 @@ export class SupervisorInfrastructure implements InfrastructureInterface {
     return [
       {
         name: "Supervisor stop",
-        actions: [
-          `sudo supervisorctl status | grep ${context.serviceName} && sudo supervisorctl stop ${context.serviceName}:* || echo "Not ran"`
-        ]
+        actions: [`sudo supervisorctl stop ${context.serviceName}:* || echo "Not installed"`]
       },
       {
         name: "Supervisor config update",
