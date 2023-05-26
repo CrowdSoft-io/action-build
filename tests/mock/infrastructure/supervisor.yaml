@@ -1,4 +1,0 @@
-supervisor:
-  programs:
-    - name: 'server'
-      command: 'node_modules/.bin/next start'

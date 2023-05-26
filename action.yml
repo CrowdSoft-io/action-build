@@ -20,28 +20,28 @@ inputs:
 outputs:
   version:
     description: Build version
-    value: ${{ steps.main.outputs.version}}
+    value: ${{ steps.core.outputs.version}}
   build_dir:
     description: Build directory
-    value: ${{ steps.main.outputs.build_dir}}
+    value: ${{ steps.core.outputs.build_dir}}
   release_dir:
     description: Release directory
-    value: ${{ steps.main.outputs.release_dir}}
+    value: ${{ steps.core.outputs.release_dir}}
   install_script:
     description: Install script
-    value: ${{ steps.main.outputs.install_script}}
+    value: ${{ steps.core.outputs.install_script}}
 
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@v3
+    - name: Core build
+      id: core
+      uses: CrowdSoft-io/action-core@v1
       with:
-        node-version: 16.x
-        cache: npm
-    - name: Build
-      id: main
-      run: node ${{ github.action_path }}/dist/index.js
-      shell: bash
+        platform: ${{ inputs.platform }}
+        user: ${{ inputs.user }}
+        max_releases: ${{ inputs.max_releases }}
+        infrastructure_dir: ${{ inputs.infrastructure_dir }}
 
     - uses: shivammathur/setup-php@v2
       with:
