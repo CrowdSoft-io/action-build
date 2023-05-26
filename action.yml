@@ -1,51 +1,51 @@
-name: 'Build'
-description: 'Build project'
+name: Build
+description: Build project
 
 inputs:
   platform:
-    description: 'Platform name'
+    description: Platform name
     required: true
   user:
-    description: 'Username'
+    description: Username
     required: true
   max_releases:
-    description: 'Maximum number of old releases'
+    description: Maximum number of old releases
     required: false
     default: '5'
   infrastructure_dir:
-    description: 'Infrastructure directory'
+    description: Infrastructure directory
     required: false
-    default: 'infrastructure'
+    default: infrastructure
 
 outputs:
   version:
-    description: 'Build version'
+    description: Build version
     value: ${{ steps.main.outputs.version}}
   build_dir:
-    description: 'Build directory'
+    description: Build directory
     value: ${{ steps.main.outputs.build_dir}}
   release_dir:
-    description: 'Release directory'
+    description: Release directory
     value: ${{ steps.main.outputs.release_dir}}
   install_script:
-    description: 'Install script'
+    description: Install script
     value: ${{ steps.main.outputs.install_script}}
 
 runs:
-  using: 'composite'
+  using: composite
   steps:
     - uses: actions/setup-node@v3
       with:
         node-version: 16.x
         cache: npm
     - name: Build
-      id: 'main'
-      run: node dist/index.js
+      id: main
+      run: node ${{ github.action_path }}/dist/index.js
       shell: bash
 
     - uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.1'
+        php-version: 8.1
     - name: Run composer
       if: steps.main.outputs.run_composer
       run: |
