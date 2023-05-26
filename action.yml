@@ -31,17 +31,21 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - uses: 'node16'
     - name: Build
       id: 'main'
-      uses: 'node16'
       run: node dist/index.js
-    - name: Run composer
-      if: steps.main.outputs.run_composer
-      uses: shivammathur/setup-php@v2
+      shell: bash
+
+    - uses: shivammathur/setup-php@v2
       with:
         php-version: '8.1'
+    - name: Run composer
+      if: steps.main.outputs.run_composer
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
         tar -rf ${{ steps.main.outputs.build_dir}}/release.tar vendor
+      shell: bash
+
     - run: gzip ${{ steps.main.outputs.build_dir}}/release.tar
       shell: bash
