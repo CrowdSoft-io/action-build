@@ -1,5 +1,6 @@
 name: 'Build'
 description: 'Build project'
+
 inputs:
   platform:
     description: 'Platform name'
@@ -15,6 +16,7 @@ inputs:
     description: 'Infrastructure directory'
     required: false
     default: 'infrastructure'
+
 outputs:
   version:
     description: 'Build version'
@@ -28,10 +30,14 @@ outputs:
   install_script:
     description: 'Install script'
     value: ${{ steps.main.outputs.install_script}}
+
 runs:
   using: 'composite'
   steps:
-    - uses: 'node16'
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16.x
+        cache: npm
     - name: Build
       id: 'main'
       run: node dist/index.js
