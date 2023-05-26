@@ -44,14 +44,15 @@ runs:
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
 
     - uses: shivammathur/setup-php@v2
+      if: steps.core.outputs.run_composer
       with:
         php-version: 8.1
     - name: Run composer
-      if: steps.main.outputs.run_composer
+      if: steps.core.outputs.run_composer
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
-        tar -rf ${{ steps.main.outputs.build_dir}}/release.tar vendor
+        tar -rf ${{ steps.core.outputs.build_dir}}/release.tar vendor
       shell: bash
 
-    - run: gzip ${{ steps.main.outputs.build_dir}}/release.tar
+    - run: gzip ${{ steps.core.outputs.build_dir}}/release.tar
       shell: bash
