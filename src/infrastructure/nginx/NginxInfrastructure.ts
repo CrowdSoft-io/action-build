@@ -3,7 +3,7 @@ import { Context, ReleaseStage } from "../../models";
 import { FileSystem } from "../../utils/fs";
 import { InfrastructureBuildResult } from "../InfrastructureBuildResult";
 import { InfrastructureInterface } from "../InfrastructureInterface";
-import { NginxConfig } from "./NginxConfig";
+import { NginxConfig, NginxPhpService } from "./NginxConfig";
 import { NginxConfigRenderer } from "./NginxConfigRenderer";
 
 @Injectable()
@@ -31,7 +31,7 @@ export class NginxInfrastructure implements InfrastructureInterface {
 
     return {
       preRelease: this.preRelease(context, config),
-      postRelease: this.postRelease()
+      postRelease: this.postRelease(config)
     };
   }
 
@@ -59,12 +59,25 @@ export class NginxInfrastructure implements InfrastructureInterface {
     return stages;
   }
 
-  private postRelease(): Array<ReleaseStage> {
-    return [
-      {
-        name: "Nginx reload",
-        actions: ["sudo service nginx reload"]
-      }
-    ];
+  private postRelease(config: NginxConfig): Array<ReleaseStage> {
+    const stages: Array<ReleaseStage> = [];
+
+    const location =
+      config.external?.locations.find((location) => location.service.type === "php") ||
+      config.internal?.locations.find((location) => location.service.type === "php");
+    if (location) {
+      const service = location.service as NginxPhpService;
+      stages.push({
+        name: "Php-fpm reload",
+        actions: [`sudo service php${service.options.version}-fpm reload`]
+      });
+    }
+
+    stages.push({
+      name: "Nginx reload",
+      actions: ["sudo service nginx reload"]
+    });
+
+    return stages;
   }
 }

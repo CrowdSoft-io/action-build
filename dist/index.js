@@ -25,38 +25,35 @@ const infrastructure_1 = __nccwpck_require__(18051);
 const platforms_1 = __nccwpck_require__(61217);
 const fs_1 = __nccwpck_require__(75312);
 const shell_1 = __nccwpck_require__(30432);
-const InstallScriptBuilder_1 = __nccwpck_require__(82542);
-const runNumberMax = 1000000;
+const services_1 = __nccwpck_require__(57270);
 let Builder = class Builder {
+    contextFactory;
     infrastructureManager;
     platformResolver;
     fileSystem;
     runner;
-    constructor(infrastructureManager, platformResolver, fileSystem, runner) {
+    constructor(contextFactory, infrastructureManager, platformResolver, fileSystem, runner) {
+        this.contextFactory = contextFactory;
         this.infrastructureManager = infrastructureManager;
         this.platformResolver = platformResolver;
         this.fileSystem = fileSystem;
         this.runner = runner;
     }
     async build(githubContext, options) {
-        const repository = githubContext.payload.repository?.name;
-        if (!repository) {
-            throw new Error("Repository not set");
-        }
-        const context = await this.createPlatformContext(githubContext, options);
+        const context = this.contextFactory.createContext(githubContext, options);
         this.fileSystem.mkdir(context.local.buildDir);
         this.fileSystem.mkdir(context.local.buildBinDir);
         const infrastructureResult = await this.infrastructureManager.build(context);
         const platform = this.platformResolver.resolve(options.platform);
         const platformResult = await platform.build(context, infrastructureResult.environment);
-        await this.runner.run("tar", "-czf", `${context.local.buildDir}/release.tar.gz`, ...platformResult.files);
-        await new InstallScriptBuilder_1.InstallScriptBuilder(context, this.fileSystem)
+        await this.runner.run("tar", "-cf", `${context.local.buildDir}/release.tar`, ...platformResult.files);
+        await new services_1.InstallScriptBuilder(context, this.fileSystem)
             .createDirectories()
             .extractReleaseArchive()
             .addStages(...infrastructureResult.preRelease)
-            .addStages(...platformResult.preRelease)
+            .addStages(...(platformResult.preRelease ?? []))
             .switchReleases()
-            .addStages(...platformResult.postRelease)
+            .addStages(...(platformResult.postRelease ?? []))
             .addStages(...infrastructureResult.postRelease)
             .removeOldReleases()
             .removeBuildArtifacts()
@@ -65,10 +62,82 @@ let Builder = class Builder {
             version: context.version,
             buildDir: context.local.buildDir,
             releaseDir: context.remote.buildDir,
-            installScript: `${context.remote.buildBinDir}/install.sh`
+            installScript: `${context.remote.buildBinDir}/install.sh`,
+            runComposer: !!platformResult.postBuild?.runComposer
         };
     }
-    async createPlatformContext(githubContext, options) {
+};
+Builder = __decorate([
+    (0, di_1.Injectable)(),
+    __param(0, (0, di_1.Inject)()),
+    __param(1, (0, di_1.Inject)()),
+    __param(2, (0, di_1.Inject)()),
+    __param(3, (0, di_1.Inject)()),
+    __param(4, (0, di_1.Inject)()),
+    __metadata("design:paramtypes", [services_1.ContextFactory,
+        infrastructure_1.InfrastructureManager,
+        platforms_1.PlatformResolver,
+        fs_1.FileSystem,
+        shell_1.Runner])
+], Builder);
+exports.Builder = Builder;
+
+
+/***/ }),
+
+/***/ 59928:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+
+/***/ 14339:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(39102), exports);
+__exportStar(__nccwpck_require__(59928), exports);
+
+
+/***/ }),
+
+/***/ 62705:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ContextFactory = void 0;
+const di_1 = __nccwpck_require__(9270);
+const runNumberMax = 1000000;
+let ContextFactory = class ContextFactory {
+    createContext(githubContext, options) {
         const repository = githubContext.payload.repository?.name;
         if (!repository) {
             throw new Error("Repository not set");
@@ -92,6 +161,8 @@ let Builder = class Builder {
             },
             remote: {
                 user: options.user,
+                configsRoot: `${remoteHomeDir}/configs/${repository}`,
+                storageRoot: `${remoteHomeDir}/storage/${repository}`,
                 wwwRoot: remoteWwwRoot,
                 projectRoot: `${remoteWwwRoot}/${repository}`,
                 releasesRoot: remoteReleasesRoot,
@@ -107,33 +178,15 @@ let Builder = class Builder {
         };
     }
 };
-Builder = __decorate([
-    (0, di_1.Injectable)(),
-    __param(0, (0, di_1.Inject)()),
-    __param(1, (0, di_1.Inject)()),
-    __param(2, (0, di_1.Inject)()),
-    __param(3, (0, di_1.Inject)()),
-    __metadata("design:paramtypes", [infrastructure_1.InfrastructureManager,
-        platforms_1.PlatformResolver,
-        fs_1.FileSystem,
-        shell_1.Runner])
-], Builder);
-exports.Builder = Builder;
+ContextFactory = __decorate([
+    (0, di_1.Injectable)()
+], ContextFactory);
+exports.ContextFactory = ContextFactory;
 
 
 /***/ }),
 
-/***/ 59928:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-
-/***/ 82542:
+/***/ 56357:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -213,7 +266,7 @@ exports.InstallScriptBuilder = InstallScriptBuilder;
 
 /***/ }),
 
-/***/ 14339:
+/***/ 57270:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -233,9 +286,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(39102), exports);
-__exportStar(__nccwpck_require__(59928), exports);
-__exportStar(__nccwpck_require__(82542), exports);
+__exportStar(__nccwpck_require__(62705), exports);
+__exportStar(__nccwpck_require__(56357), exports);
 
 
 /***/ }),
@@ -290,6 +342,7 @@ async function main() {
     core.setOutput("build_dir", result.buildDir);
     core.setOutput("release_dir", result.releaseDir);
     core.setOutput("install_script", result.installScript);
+    core.setOutput("run_composer", result.runComposer);
     console.log(`Building "${platform}" version "${result.version}" finished.`);
     await injector.destroy();
 }
@@ -790,7 +843,7 @@ let NginxInfrastructure = class NginxInfrastructure {
         }
         return {
             preRelease: this.preRelease(context, config),
-            postRelease: this.postRelease()
+            postRelease: this.postRelease(config)
         };
     }
     preRelease(context, config) {
@@ -813,13 +866,22 @@ let NginxInfrastructure = class NginxInfrastructure {
         }
         return stages;
     }
-    postRelease() {
-        return [
-            {
-                name: "Nginx reload",
-                actions: ["sudo service nginx reload"]
-            }
-        ];
+    postRelease(config) {
+        const stages = [];
+        const location = config.external?.locations.find((location) => location.service.type === "php") ||
+            config.internal?.locations.find((location) => location.service.type === "php");
+        if (location) {
+            const service = location.service;
+            stages.push({
+                name: "Php-fpm reload",
+                actions: [`sudo service php${service.options.version}-fpm reload`]
+            });
+        }
+        stages.push({
+            name: "Nginx reload",
+            actions: ["sudo service nginx reload"]
+        });
+        return stages;
     }
 };
 NginxInfrastructure = __decorate([
@@ -1074,6 +1136,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PlatformName = void 0;
 var PlatformName;
 (function (PlatformName) {
+    PlatformName["Laravel"] = "laravel";
     PlatformName["Next"] = "next";
 })(PlatformName = exports.PlatformName || (exports.PlatformName = {}));
 
@@ -1100,9 +1163,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PlatformResolver = void 0;
 const di_1 = __nccwpck_require__(9270);
+const laravel_1 = __nccwpck_require__(9054);
 const next_1 = __nccwpck_require__(68749);
 const PlatformName_1 = __nccwpck_require__(41383);
 const dictionary = {
+    [PlatformName_1.PlatformName.Laravel]: laravel_1.LaravelPlatform,
     [PlatformName_1.PlatformName.Next]: next_1.NextPlatform
 };
 let PlatformResolver = class PlatformResolver {
@@ -1148,11 +1213,112 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(9054), exports);
 __exportStar(__nccwpck_require__(68749), exports);
 __exportStar(__nccwpck_require__(41516), exports);
 __exportStar(__nccwpck_require__(72032), exports);
 __exportStar(__nccwpck_require__(41383), exports);
 __exportStar(__nccwpck_require__(85142), exports);
+
+
+/***/ }),
+
+/***/ 21514:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LaravelPlatform = void 0;
+const di_1 = __nccwpck_require__(9270);
+let LaravelPlatform = class LaravelPlatform {
+    async build(context) {
+        const storageAppPath = `${context.remote.storageRoot}/app`;
+        const paths = [storageAppPath];
+        return {
+            files: [
+                "app",
+                "bootstrap",
+                "config",
+                "database",
+                "lang",
+                "public",
+                "resources",
+                "routes",
+                "storage/framework",
+                "storage/logs",
+                "artisan",
+                "composer.json"
+            ],
+            postBuild: {
+                runComposer: true
+            },
+            preRelease: [
+                {
+                    name: "Create directories",
+                    actions: paths.map((path) => `[[ ! -d '${path}' ]] && mkdir -p '${path}' || echo '${path} already created'`)
+                },
+                {
+                    name: "Configure project",
+                    actions: [
+                        `ln -s '${storageAppPath}' '${context.remote.releaseDir}/storage/app'`,
+                        `cp '${context.remote.configsRoot}/.env' '${context.remote.releaseDir}/'`
+                    ]
+                },
+                {
+                    name: "Run migrations",
+                    actions: [
+                        `php ${context.remote.releaseDir}/artisan migrate`,
+                        `php ${context.remote.releaseDir}/artisan l5-swagger:generate || echo "l5-swagger not installed"`
+                    ]
+                },
+                {
+                    name: "Clear cache",
+                    actions: [
+                        `php ${context.remote.releaseDir}/artisan cache:clear`,
+                        `php ${context.remote.releaseDir}/artisan config:clear`,
+                        `php ${context.remote.releaseDir}/artisan storage:link`
+                    ]
+                }
+            ]
+        };
+    }
+};
+LaravelPlatform = __decorate([
+    (0, di_1.Injectable)()
+], LaravelPlatform);
+exports.LaravelPlatform = LaravelPlatform;
+
+
+/***/ }),
+
+/***/ 9054:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(21514), exports);
 
 
 /***/ }),
@@ -1203,9 +1369,7 @@ let NextPlatform = class NextPlatform {
         await this.runner.run("rm", "-rf", "node_modules");
         await packageManager.install({ production: true, ignoreScripts: true, frozenLockfile: true });
         return {
-            files: [".next", "app", "messages", "node_modules", "public", ".env", "next.config.js", "package.json"],
-            preRelease: [],
-            postRelease: []
+            files: [".next", "app", "messages", "node_modules", "public", ".env", "next.config.js", "package.json"]
         };
     }
 };

@@ -18,12 +18,30 @@ inputs:
 outputs:
   version:
     description: 'Build version'
+    value: ${{ steps.main.outputs.version}}
   build_dir:
     description: 'Build directory'
+    value: ${{ steps.main.outputs.build_dir}}
   release_dir:
     description: 'Release directory'
+    value: ${{ steps.main.outputs.release_dir}}
   install_script:
     description: 'Install script'
+    value: ${{ steps.main.outputs.install_script}}
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - name: Build
+      id: 'main'
+      uses: 'node16'
+      run: node dist/index.js
+    - name: Run composer
+      if: steps.main.outputs.run_composer
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+      run: |
+        APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
+        tar -rf ${{ steps.main.outputs.build_dir}}/release.tar vendor
+    - run: gzip ${{ steps.main.outputs.build_dir}}/release.tar
+      shell: bash

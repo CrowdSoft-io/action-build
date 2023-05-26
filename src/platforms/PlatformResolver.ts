@@ -1,9 +1,11 @@
 import { Inject, Injectable, InjectorService, TokenProvider } from "@tsed/di";
+import { LaravelPlatform } from "./laravel";
 import { NextPlatform } from "./next";
 import { PlatformInterface } from "./PlatformInterface";
 import { PlatformName } from "./PlatformName";
 
 const dictionary: Record<PlatformName, TokenProvider<PlatformInterface>> = {
+  [PlatformName.Laravel]: LaravelPlatform,
   [PlatformName.Next]: NextPlatform
 };
 

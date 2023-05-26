@@ -33,9 +33,7 @@ export class NextPlatform implements PlatformInterface {
     await packageManager.install({ production: true, ignoreScripts: true, frozenLockfile: true });
 
     return {
-      files: [".next", "app", "messages", "node_modules", "public", ".env", "next.config.js", "package.json"],
-      preRelease: [],
-      postRelease: []
+      files: [".next", "app", "messages", "node_modules", "public", ".env", "next.config.js", "package.json"]
     };
   }
 }

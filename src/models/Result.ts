@@ -3,4 +3,5 @@ export interface Result {
   readonly buildDir: string;
   readonly releaseDir: string;
   readonly installScript: string;
+  readonly runComposer: boolean;
 }

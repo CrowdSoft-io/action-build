@@ -13,6 +13,8 @@ export interface Context {
   };
   readonly remote: {
     readonly user: string;
+    readonly configsRoot: string;
+    readonly storageRoot: string;
     readonly wwwRoot: string;
     readonly projectRoot: string;
     readonly releasesRoot: string;

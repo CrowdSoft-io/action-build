@@ -1,3 +1,4 @@
+export * from "./laravel";
 export * from "./next";
 
 export * from "./PlatformBuildResult";

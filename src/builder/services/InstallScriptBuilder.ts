@@ -1,5 +1,5 @@
-import { Context, ReleaseStage } from "../models";
-import { FileSystem } from "../utils/fs";
+import { Context, ReleaseStage } from "../../models";
+import { FileSystem } from "../../utils/fs";
 
 export class InstallScriptBuilder {
   private readonly stages: Array<{
