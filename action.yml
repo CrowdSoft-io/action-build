@@ -44,11 +44,11 @@ runs:
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
 
     - uses: shivammathur/setup-php@v2
-    - run: echo ${{ steps.core.outputs.run_composer }}
-      shell: bash
-      if: steps.core.outputs.run_composer == true
+      if: ${{ steps.core.outputs.run_composer }}
       with:
         php-version: 8.1
+    - run: echo ${{ steps.core.outputs.run_composer }}
+      shell: bash
     - name: Run composer
       if: steps.core.outputs.run_composer == true
       run: |
