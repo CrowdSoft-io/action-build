@@ -20,16 +20,16 @@ inputs:
 outputs:
   version:
     description: Build version
-    value: ${{ steps.core.outputs.version}}
+    value: ${{ steps.core.outputs.version }}
   build_dir:
     description: Build directory
-    value: ${{ steps.core.outputs.build_dir}}
+    value: ${{ steps.core.outputs.build_dir }}
   release_dir:
     description: Release directory
-    value: ${{ steps.core.outputs.release_dir}}
+    value: ${{ steps.core.outputs.release_dir }}
   install_script:
     description: Install script
-    value: ${{ steps.core.outputs.install_script}}
+    value: ${{ steps.core.outputs.install_script }}
 
 runs:
   using: composite
@@ -44,15 +44,15 @@ runs:
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
 
     - uses: shivammathur/setup-php@v2
-      if: ${{ steps.core.outputs.run_composer }}
+      if: ${{ steps.core.outputs.run_composer == true }}
       with:
         php-version: 8.1
     - name: Run composer
-      if: ${{ steps.core.outputs.run_composer }}
+      if: ${{ steps.core.outputs.run_composer == true }}
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
-        tar -rf ${{ steps.core.outputs.build_dir}}/release.tar vendor
+        tar -rf ${{ steps.core.outputs.build_dir }}/release.tar vendor
       shell: bash
 
-    - run: gzip ${{ steps.core.outputs.build_dir}}/release.tar
+    - run: gzip ${{ steps.core.outputs.build_dir }}/release.tar
       shell: bash
