@@ -20,6 +20,10 @@ This action prepares a shell script for remote server execution.
 
 **Optional** The name of the infrastructure configuration directory. Default `"infrastructure"`.
 
+### `php_version`
+
+**Optional** PHP version. Default `8.1`.
+
 ## Outputs
 
 ### `version`
