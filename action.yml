@@ -53,6 +53,8 @@ runs:
         php-version: ${{ inputs.php_version }}
     - name: Run composer
       if: ${{ steps.core.outputs.run_composer == 'true' }}
+      env:
+        COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{secrets.COMPOSER_AUTH}}"} }'
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
         tar -rf ${{ steps.core.outputs.build_dir }}/release.tar vendor
