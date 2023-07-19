@@ -20,6 +20,9 @@ inputs:
     description: PHP version
     required: false
     default: '8.1'
+  composer_auth:
+    description: Composer auth token
+    required: false
 
 outputs:
   version:
@@ -54,7 +57,7 @@ runs:
     - name: Run composer
       if: ${{ steps.core.outputs.run_composer == 'true' }}
       env:
-        COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{secrets.COMPOSER_AUTH}}"} }'
+        COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{inputs.composer_auth}}"} }'
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
         tar -rf ${{ steps.core.outputs.build_dir }}/release.tar vendor

@@ -24,6 +24,10 @@ This action prepares a shell script for remote server execution.
 
 **Optional** PHP version. Default `8.1`.
 
+### `composer_auth`
+
+**Optional** Composer auth token.
+
 ## Outputs
 
 ### `version`
