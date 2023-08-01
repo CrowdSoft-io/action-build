@@ -68,6 +68,13 @@ runs:
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
         tar -rf ${{ steps.core.outputs.build_dir }}/release.tar vendor
       shell: bash
+    - name: Add vendor assets
+      if: ${{ inputs.platform == 'laravel' }}
+      run: |
+        if [[ -d "public/vendor" ]]; then
+          tar -rf ${{ steps.core.outputs.build_dir }}/release.tar public/vendor
+        fi
+      shell: bash
 
     - run: gzip ${{ steps.core.outputs.build_dir }}/release.tar
       shell: bash
