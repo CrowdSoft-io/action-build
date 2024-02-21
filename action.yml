@@ -23,6 +23,9 @@ inputs:
   composer_auth:
     description: Composer auth token
     required: false
+  npm_auth:
+    description: NPM auth token
+    required: false
 
 outputs:
   version:
@@ -41,6 +44,12 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Setup NPM github token
+      if: ${{ inputs.npm_auth != '' }}
+      run: |
+        echo '//npm.pkg.github.com/:_authToken=${{ inputs.npm_auth }}' >> .npmrc
+      shell: bash
+
     - name: Core build
       id: core
       uses: CrowdSoft-io/action-core@v1

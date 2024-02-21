@@ -28,6 +28,10 @@ This action prepares a shell script for remote server execution.
 
 **Optional** Composer auth token.
 
+### `npm_auth`
+
+**Optional** NPM auth token.
+
 ## Outputs
 
 ### `version`
