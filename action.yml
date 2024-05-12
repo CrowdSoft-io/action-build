@@ -64,6 +64,18 @@ runs:
         max_releases: ${{ inputs.max_releases }}
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
 
+    - uses: actions/setup-go@v5
+      if: ${{ steps.core.outputs.golang_build != '' }}
+      with:
+        go-version: '^1.19'
+    - name: Golang build
+      if: ${{ steps.core.outputs.golang_build != '' }}
+      run: |
+        go get ./... && \
+        bash -c '${{ steps.core.outputs.golang_build }}' && \
+        tar -rf ${{ steps.core.outputs.build_dir }}/release.tar bin
+      shell: bash
+
     - uses: shivammathur/setup-php@v2
       if: ${{ steps.core.outputs.run_composer == 'true' }}
       with:
