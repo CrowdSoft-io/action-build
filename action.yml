@@ -71,7 +71,6 @@ runs:
     - name: Golang build
       if: ${{ steps.core.outputs.golang_build != '' }}
       run: |
-        go get ./... && \
         bash -c '${{ steps.core.outputs.golang_build }}' && \
         tar -rf ${{ steps.core.outputs.build_dir }}/release.tar bin
       shell: bash
