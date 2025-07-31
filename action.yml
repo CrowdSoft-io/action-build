@@ -79,6 +79,11 @@ runs:
       if: ${{ steps.core.outputs.run_composer == 'true' }}
       with:
         php-version: ${{ inputs.php_version }}
+    - name: Run before composer
+      if: ${{ steps.core.outputs.composer_before != '' }}
+      run: |
+        bash -c '${{ steps.core.outputs.composer_before }}'
+      shell: bash
     - name: Run composer with github token
       if: ${{ steps.core.outputs.run_composer == 'true' && inputs.composer_auth != '' }}
       env:
@@ -92,6 +97,11 @@ runs:
       run: |
         APP_ENV=prod APP_DEBUG=0 composer install -n --no-dev
         tar -rf ${{ steps.core.outputs.build_dir }}/release.tar vendor
+      shell: bash
+    - name: Run after composer
+      if: ${{ steps.core.outputs.composer_after != '' }}
+      run: |
+        bash -c '${{ steps.core.outputs.composer_after }}'
       shell: bash
     - name: Add vendor assets
       if: ${{ inputs.platform == 'laravel' }}
