@@ -45,6 +45,9 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.payload.pull_request.base.ref }}
+
     - uses: actions/setup-node@v4
       with:
         registry-url: https://npm.pkg.github.com/
