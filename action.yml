@@ -45,15 +45,6 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.ref_name }}
-
-    - run: |
-        echo 'github.base_ref=${{ github.base_ref }}'
-        echo 'github.head_ref=${{ github.head_ref }}'
-        echo 'github.ref_name=${{ github.ref_name }}'
-      shell: bash
-
     - uses: actions/setup-node@v4
       with:
         registry-url: https://npm.pkg.github.com/
