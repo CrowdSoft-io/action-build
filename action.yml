@@ -46,7 +46,7 @@ runs:
   steps:
     - uses: actions/checkout@v6
       with:
-        ref: ${{ github.payload.pull_request.base.ref }}
+        ref: ${{ github.head_ref }}
 
     - uses: actions/setup-node@v4
       with:
