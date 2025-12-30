@@ -46,7 +46,7 @@ runs:
   steps:
     - uses: actions/checkout@v6
       with:
-        ref: ${{ github.base_ref }}
+        ref: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
 
     - uses: actions/setup-node@v4
       with:
