@@ -20,10 +20,6 @@ inputs:
     description: PHP version
     required: false
     default: '8.1'
-  node_version:
-    description: Node version
-    required: false
-    default: '24'
   composer_auth:
     description: Composer auth token
     required: false
@@ -55,7 +51,7 @@ runs:
     - uses: actions/setup-node@v4
       with:
         registry-url: https://npm.pkg.github.com/
-        node-version: '${{ inputs.node_version }}.x'
+        node-version: '20.x'
         cache: npm
 
     - name: Setup NPM github token
@@ -72,7 +68,6 @@ runs:
         user: ${{ inputs.user }}
         max_releases: ${{ inputs.max_releases }}
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
-        node_version: ${{ inputs.node_version }}
 
     - uses: actions/setup-go@v5
       if: ${{ steps.core.outputs.golang_build != '' }}
