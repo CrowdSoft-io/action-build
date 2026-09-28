@@ -20,6 +20,10 @@ inputs:
     description: PHP version
     required: false
     default: '8.1'
+  node_version:
+    description: Node version
+    required: false
+    default: '24'
   composer_auth:
     description: Composer auth token
     required: false
@@ -66,6 +70,7 @@ runs:
         user: ${{ inputs.user }}
         max_releases: ${{ inputs.max_releases }}
         infrastructure_dir: ${{ inputs.infrastructure_dir }}
+        node_version: ${{ inputs.node_version }}
 
     - uses: actions/setup-go@v5
       if: ${{ steps.core.outputs.golang_build != '' }}
