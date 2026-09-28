@@ -53,7 +53,7 @@ The path to install script.
 ## Example usage
 
 ```yaml
-uses: CrowdSoft-io/action-build@v1.0
+uses: CrowdSoft-io/action-build@v2
 with:
   platform: 'next'
   user: 'developer'
