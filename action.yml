@@ -51,7 +51,7 @@ runs:
     - uses: actions/setup-node@v4
       with:
         registry-url: https://npm.pkg.github.com/
-        node-version: '24.x'
+        node-version: 24
         cache: npm
 
     - name: Setup NPM github token
